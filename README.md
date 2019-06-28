@@ -1,154 +1,47 @@
-# Name #
+# Welcome to the Emularity #
+![Emularity](https://raw.githubusercontent.com/db48x/emularity/master/logo/emularity_light.png)
 
-js-emulators
+# Beta Warning #
+
+The Emularity should be considered in beta. We welcome feedback and suggestions as we finish 1.0.
 
 # Synopsis #
 
-The goal of this little project is to make it easy to embed a
-javascript-based emulator in your own webpage. It downloads the files
-you specify (with aprogress ui to show what is happening), arranges
-them to form a filesystem, constructs the necessary arguments for the
-emulator, handles transitions to and from full-screen mode, and
-detects and enables game pads.
+Emularity (also called "The Emularity") is a loader designed to be used with a family of in-browser emulation systems. It is meant to ease the use of in-browser-based javascript emulation by handling housekeeping functions, making it easy to embed emulators in your website, blogs, intranet or local filesystem. The components of each aspect of the software being emulated (including the .js emulator, the program files, and operating system) can be pulled from local filesystems or through URLs.
 
-To use this project you'll need to provide it with a canvas element,
-styled as necessary so that it has the correct size on screen (the
-program will be scaled up automatically to fit, controlling for aspect
-ratio). You will also likely want to provide a simple UI for entering
-full-screen mode or muting the audio; these can simply call methods on
-the emulator when activated.
+Emularity downloads the files you specify (with a progress screen that shows both emulator logos and what is being loaded), arranges them to form a filesystem, constructs the necessary arguments for the emulator, and handles transitions to and from full-screen mode.
 
-# Emulator API #
+The Emularity system has been used by millions of users at the [Internet Archive](https://archive.org).
 
-The `Emulator` constructor takes three arguments: a canvas element, an
-optional callback (which will be called after fully initializing the
-emulator but just before it starts running the emulated program), and
-a config (as detailed below) or a function which returns a `Promise`
-of a config.
+# The Emulators #
 
-# Configuration #
+Currently works with three emulators:
 
-## Examples ##
+## MAME ##
 
-### Arcade game ###
+[MAME](https://github.com/mamedev/mame) is a port of the Multiple Arcade Machine Emulator (MAME) projects to Javascript. MAME supports over a thousand different machines including game consoles, arcade machines and computer platforms.
 
-Loads the emulator for the arcade game 1943, and gives it a compressed
-copy of the rom (which it loads from examples/1943.zip).
+## EM-DOSBox ##
 
-      var emulator = new Emulator(document.querySelector("#canvas"),
-                                  null,
-                                  new JSMAMELoader(JSMAMELoader.driver("1943"),
-                                                   JSMAMELoader.nativeResolution(224, 256),
-                                                   JSMAMELoader.emulatorJS("emulators/mess1943.js"),
-                                                   JSMAMELoader.mountFile("1943.zip",
-                                                                          JSMAMELoader.fetchFile("Game File",
-                                                                                                 "examples/1943.zip"))))
-      emulator.setScale(3);
-      emulator.start({ waitAfterDownloading: true });
+[EM-DOSBox](https://github.com/dreamlayers/em-dosbox/) is a port of DosBox to Javascript. DOSBox emulates an IBM PC compatible running DOS. There are two versions of this emulator, dosbox.js (Standard EM-DOSBOX) and dosbox-sync.js (EM-DOSBOX with considerations for in-program execution of other programs).
 
-### Console game for Atari 2600 ###
+## Scripted Amiga Emulator ##
 
-Loads the emulator for the Atari 2600 console, and an image of a
-catridge for Pitfall. Notice how we download the image, storing it in
-a file, then set up a "cart" peripheral so that the emulator can find
-it. We also load a configuration file that preconfigures some
-keybindings needed to use the 2600.
+[SAE](https://github.com/naTmeg/ScriptedAmigaEmulator) is a Javascript port of WinUAE by [naTmeg](https://github.com/naTmeg). It emulates most of the Amiga models that were released.
 
-      var emulator = new Emulator(document.querySelector("#canvas"),
-                                  null,
-                                  new JSMESSLoader(JSMESSLoader.driver("a2600"),
-                                                   JSMESSLoader.nativeResolution(352, 223),
-                                                   JSMESSLoader.emulatorJS("emulators/messa2600.js"),
-                                                   JSMESSLoader.mountFile("Pitfall_Activision_1982.bin",
-                                                                          JSMESSLoader.fetchFile("Game File",
-                                                                                                 "examples/Pitfall_Activision_1982.bin")),
-                                                   JSMESSLoader.mountFile("a2600.cfg",
-                                                                          JSMESSLoader.fetchFile("Config File",
-                                                                                                 "examples/a2600.cfg")),
-                                                   JSMESSLoader.peripheral("cart", "Pitfall_Activision_1982.bin")))
-      emulator.setScale(3).start({ waitAfterDownloading: true });
+# Credits and Components #
 
-### DOS game ###
+Primary work on Emularity is by [Daniel Brooks](https://github.com/db48x), with contributions of code or concepts from [John Vilk](https://github.com/jvilk), Andre D, [Justin Kerk](https://github.com/DopefishJustin), [Vitorio Miliano](https://github.com/vitorio), and [Jason Scott](https://github.com/textfiles). Some of these contributions predate the Emularity git repository, unfortunately.
 
-Here we load the dosbox emulator, and a zip file containing the game
-ZZT which we decompress and then mount as the C drive. We also tell
-DosBox to immediately start running zzt.exe, which is inside the zip.
+Emularity makes use of [BrowserFS](https://github.com/jvilk/BrowserFS) by [John Vilk](https://github.com/jvilk), an in-browser filesystem that emulates the Node JS filesystem API and supports storing and retrieving files from various backends.
 
-      var emulator = new Emulator(document.querySelector("#canvas"),
-                                  null,
-                                  new DosBoxLoader(DosBoxLoader.emulatorJS("emulators/dosbox.js"),
-                                                   DosBoxLoader.nativeResolution(640, 400),
-                                                   DosBoxLoader.mountZip("c",
-                                                                         DosBoxLoader.fetchFile("Game File",
-                                                                                                "examples/Zzt_1991_Epic_Megagames_Inc.zip")),
-                                                   DosBoxLoader.startExe("zzt.exe")))
-      emulator.start({ waitAfterDownloading: true });
+It also utilizes [ES6-Promise](https://github.com/jakearchibald/es6-promise), a polyfill of the ES6 Promise API. Both are implemented and included without modification; consult these original repositories for information or verification.
 
-## Configuration API ##
+# Some Open Issues #
 
-Currently there are two supported emulators, JSMESS and
-EM-DosBox. JSMESS provides emulation for arcade games, consoles, and
-early personal computers. As this emulator supports such a wide
-variety of hardware it has been broken up into several dozen emulators
-each supporting one machine lest the resulting javascript be
-intractably large (60+ megabytes). EM-DosBox provides emulation for
-software that runs on x86 PCs using the DOS operating systems common
-to the era.
-
-Each of these is configured by calling a constructor function and
-providing it with arguments formed by calling static methods on that
-same constructor.
-
-### Common ###
-
-* `emulatorJS(url)`
-* `mountZip(drive, file)`
-* `mountFile(filename, file)`
-* `fetchFile(url)`
-* `fetchOptionalFile(url)`
-* `localFile(data)`
-
-### JSMESS ###
-
-* `driver(driverName)`
-* `extraArgs(args)`
-* `peripheral(name, filename)`
-
-### JSMAME ###
-
-* `driver(driverName)`
-* `extraArgs(args)`
-
-### EM-DosBox ###
-
-* `startExe(filename)`
-
-## Internet Archive ##
-
-There's also a helper for loading software from
-[the Internet Archive](https://archive.org/v2), `IALoader`. IALoader
-looks at the metadata associated with an Internet Archive item and
-uses that to build the configuration for the emulator.
-
-## Examples ##
-
-    var emulator = new IALoader(document.querySelector("#canvas"),
-                                "Pitfall_Activision_1982/Pitfall_Activision_1982.bin");
-
-# Runtime API #
-
-Once you have an emulator object, there are several methods you can call.
-
-* `start()`
-* `requestFullScreen()`
-* `mute()`
-* `setSplashColors()`
-* others…
-
-# Known Bugs #
-
-* splash screen doesn't always fit inside the canvas
-* need to improve the download progress indicators
-* browser feature detection for volume/mute/full-screen
-* handling of aspect ratios, and their interaction with full-screen mode
-* finish API for volume/mute/full-screen requests
+* Documentation can be improved
+* Splash Screen occasionally overflows canvas
+* Progress bars can stand to be improved
+* Should add browser-specific detections for unusual behaviors and volume/full-screen actions
+* Handling of aspect ratios, and their interaction with full-screen mode
+* Finish API for volume/mute/full-screen requests
